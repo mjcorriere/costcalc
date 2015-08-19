@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Table Cost Calculator</title>
+    <style type="text/css">
+    .input-group input, .input-group select {
+        display: inline-block;
+    }
+
+    .input-group input {
+        margin-right: 15px;
+    }
+
+    .input-group label {
+        margin-right: 15px;
+    }
+
+    .input-group .input-row {
+        margin-top: 10px;
+        margin-left: 15px;
+        line-height: 1.5;
+    }
+    
+    .inputs h1 {
+        font-size: 24px;
+    }
+
+    .input-group h1 {
+        font-size: 16px;
+    }
+
+    .inputs label, .outputs label {
+        float: left;
+    }
+
+    .slider-output {
+        display: inline-block;
+        line-height: 1.5;
+    }
+
+    </style>
+</head>
+<body>
+<h1>Table Cost Calculator</h1>
+<div class='inputs'>
+    <h1>Inputs</h1>
+    <div class='input-group'>
+        <h1>Dimensions</h1>
+        <div class='input-row'>
+            <label for='table-width'>Table Width</label>
+            <input id='table-width' type='range' min='18' max='36' step='1' />
+            <div class='slider-output' for='table-width' id='table-width-out'></div>
+        </div>
+        <div class='input-row'>
+            <label for='table-length'>Table Length</label>
+            <input id='table-length' type='range' min='36' max='72' step='1' />
+            <div class='slider-output' for='table-length' id='table-length-out'></div>
+        </div>
+        <div class='input-row'>
+            <label for='table-thick'>Table Thickness</label>
+            <input id='table-thick' type='range' min='1' max='2' step='0.5' />
+            <div class='slider-output' for='table-thick' id='table-thick-out'></div>
+        </div>
+    </div>
+    <div class='input-group'>
+        <h1>Wood</h1>
+        <div class='input-row'>
+            <label for='species'>Wood Species</label>
+            <select id='species'></select>
+        </div>
+        <div class='input-row'>
+            <label for='board-width'>Board Width</label>
+            <input id='board-width' type='range' min='3' max='12' step='0.5' />
+            <div class='slider-output' id='board-width-out'></div>
+        </div>
+    </div>
+</div>
+<div class='outputs'>
+    <h1>Outputs</h1>
+    <label>Price</label>
+    <h2 id='price'></h2>
+</div>
+<script type="text/javascript">
+
+    var species = {
+        "White Ash": {
+            "1": 2.95,
+            "1.5": 3.5,
+            "2": 3.65
+        },
+        "Eastern White Pine": {
+            "1": 5.05,
+            "1.5": 5.35,
+            "2": 5.45
+        },
+        "Yellow Birch": {
+            "1": 3.85,
+            "1.5": 4.95,
+            "2": 4.95
+        }
+    };
+
+    function initForm() {
+        var sliders = document.querySelectorAll('input[type=range]');
+        for (var i = 0; i < sliders.length; i++) {
+            var slider = sliders[i];
+            var outTarget = '#' + slider.id + '-out';
+            document.querySelector(outTarget).innerText = slider.value;
+        }
+
+        var select = document.querySelector('#species');
+        for (wood in species) {
+            var option = document.createElement('option');
+            option.value = wood;
+            option.innerText = wood;
+            select.appendChild(option);
+        }
+
+        calculatePrice();
+
+    }
+
+    function sliderChanged(event) {
+        if (event.target != event.currentTarget) {
+            var outTarget = '#' + event.target.id + '-out';
+            document.querySelector(outTarget).innerText = event.target.value;
+        }
+
+        event.stopPropagation();
+
+        calculatePrice();
+
+    }
+
+    function calculatePrice() {
+        var width       = parseFloat(document.querySelector('#table-width').value);
+        var length      = parseFloat(document.querySelector('#table-length').value);
+        var thickness   = parseFloat(document.querySelector('#table-thick').value);
+
+        var boardWidth  = parseFloat(document.querySelector('#board-width').value);
+        var wood        = document.querySelector('#species').value;
+
+        var nBoards = Math.ceil(width / boardWidth);
+        var bdFtPerBoard = boardWidth * length * thickness / 144;
+
+        var boardFeet = bdFtPerBoard * nBoards;
+
+        var pricePerBdFoot = species[wood][thickness.toString()];
+
+        var totalPrice = boardFeet * pricePerBdFoot;
+        
+        document.querySelector('#price').innerText = '$' + totalPrice.toFixed(2);
+
+
+    }
+
+    window.addEventListener('load', initForm, false);
+
+    var inputs = document.querySelector('.inputs');
+    inputs.addEventListener('input', sliderChanged, false);
+    document.querySelector('#species').addEventListener('change', calculatePrice, false);
+
+
+
+</script>
+</body>
+</html>
