@@ -3,41 +3,40 @@
 <head>
     <title>Table Cost Calculator</title>
     <style type="text/css">
-    .input-group input, .input-group select {
-        display: inline-block;
-    }
+        .input-group input, .input-group select {
+            display: inline-block;
+        }
 
-    .input-group input {
-        margin-right: 15px;
-    }
+        .input-group input {
+            margin-right: 15px;
+        }
 
-    .input-group label {
-        margin-right: 15px;
-    }
+        .input-group label {
+            margin-right: 15px;
+        }
 
-    .input-group .input-row {
-        margin-top: 10px;
-        margin-left: 15px;
-        line-height: 1.5;
-    }
-    
-    .inputs h1 {
-        font-size: 24px;
-    }
+        .input-group .input-row {
+            margin-top: 10px;
+            margin-left: 15px;
+            line-height: 1.5;
+        }
+        
+        .inputs h1 {
+            font-size: 24px;
+        }
 
-    .input-group h1 {
-        font-size: 16px;
-    }
+        .input-group h1 {
+            font-size: 16px;
+        }
 
-    .inputs label, .outputs label {
-        float: left;
-    }
+        .inputs label, .outputs label {
+            float: left;
+        }
 
-    .slider-output {
-        display: inline-block;
-        line-height: 1.5;
-    }
-
+        .slider-output {
+            display: inline-block;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>
@@ -61,6 +60,11 @@
             <input id='table-thick' type='range' min='1' max='2' step='0.5' />
             <div class='slider-output' for='table-thick' id='table-thick-out'></div>
         </div>
+        <div class='input-row'>
+            <label for='table-height'>Table Height</label>
+            <input id='table-height' type='range' min='12' max='48' step='0.5' />
+            <div class='slider-output' for='table-height' id='table-height-out'></div>
+        </div>
     </div>
     <div class='input-group'>
         <h1>Wood</h1>
@@ -74,6 +78,19 @@
             <div class='slider-output' id='board-width-out'></div>
         </div>
     </div>
+    <div class='input-group'>
+        <h1>Steel</h1>
+        <div class='input-row'>
+            <label for='steel-dia'>Steel Diameter</label>
+            <input id='steel-dia' type='range' min='1' max='2' step='0.5' />
+            <div class='slider-output' id='steel-dia-out'></div>
+        </div>
+        <div class='input-row'>
+            <label for='steel-shape'>Steel Tube Shape</label>
+            <select id='steel-shape'></select>
+        </div>
+
+    </div>
 </div>
 <div class='outputs'>
     <h1>Outputs</h1>
@@ -82,6 +99,9 @@
 </div>
 <script type="text/javascript">
 
+
+    // Prices are ROUGH sawn lumber per board foot as prices by Highland Hardwoods.
+    // These will not be the finished thicknesses of the tops due to planing.
     var species = {
         "White Ash": {
             "1": 2.95,
@@ -97,6 +117,37 @@
             "1": 3.85,
             "1.5": 4.95,
             "2": 4.95
+        },
+        "Yellow Poplar": {
+            "1": 2.40,
+            "1.5": 2.65,
+            "2": 2.85
+        },
+        "Black Walnut": {
+            "1": 9.40,
+            "1.5": 9.75,
+            "2": 12.40
+        },
+        "Red Oak": {
+            "1": 3.20,
+            "1.5": 3.95,
+            "2": 4.60
+        }
+
+    };
+
+    // Steel prices are for .125 wall priced in buying them in 8' lengths from 
+    // metal supermarket.
+    var steelShapes = {
+        "Round": {
+            "1": 3.56,
+            "1.5": 4.65,
+            "2": 6.05
+        },
+        "Square": {
+            "1": 2.92,
+            "1.5": 3.92,
+            "2": 4.83
         }
     };
 
@@ -114,6 +165,14 @@
             option.value = wood;
             option.innerText = wood;
             select.appendChild(option);
+        }
+
+        var steelSelect = document.querySelector('#steel-shape');
+        for (shape in steelShapes) {
+            var option = document.createElement('option');
+            option.value = shape;
+            option.innerText = shape;
+            steelSelect.appendChild(option);
         }
 
         calculatePrice();
@@ -136,9 +195,13 @@
         var width       = parseFloat(document.querySelector('#table-width').value);
         var length      = parseFloat(document.querySelector('#table-length').value);
         var thickness   = parseFloat(document.querySelector('#table-thick').value);
+        var height      = parseFloat(document.querySelector('#table-height').value);
 
         var boardWidth  = parseFloat(document.querySelector('#board-width').value);
         var wood        = document.querySelector('#species').value;
+
+        var steelDia    = parseFloat(document.querySelector('#steel-dia').value);
+        var steelShape  = document.querySelector('#steel-shape').value;
 
         var nBoards = Math.ceil(width / boardWidth);
         var bdFtPerBoard = boardWidth * length * thickness / 144;
@@ -147,7 +210,13 @@
 
         var pricePerBdFoot = species[wood][thickness.toString()];
 
-        var totalPrice = boardFeet * pricePerBdFoot;
+        var woodCost = boardFeet * pricePerBdFoot;
+
+        var steelCostPerFoot = steelShapes[steelShape][steelDia.toString()];
+
+        var steelCost = 4 * steelCostPerFoot * height / 12.0;
+
+        var totalPrice = woodCost + steelCost;
         
         document.querySelector('#price').innerText = '$' + totalPrice.toFixed(2);
 
@@ -159,6 +228,7 @@
     var inputs = document.querySelector('.inputs');
     inputs.addEventListener('input', sliderChanged, false);
     document.querySelector('#species').addEventListener('change', calculatePrice, false);
+    document.querySelector('#steel-shape').addEventListener('change', calculatePrice, false);
 
 
 
